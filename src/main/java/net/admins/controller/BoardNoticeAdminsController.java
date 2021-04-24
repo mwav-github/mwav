@@ -298,15 +298,9 @@ public class BoardNoticeAdminsController {
 			selectListPmtNtmList = Collections.emptyList();
 		}
 		
+		
 		String mm = "site";
 		mv.addObject("mm", mm);
-		
-		/*
-		mv.addObject("mode", "m_ntmList");
-		mv.addObject("depth_1", depth_1);
-		mv.addObject("depth_2", depth_2);
-		mv.addObject("depth_3", "NtmList");
-		*/
 
 		mv.addObject("selectListPmtNtmList", selectListPmtNtmList);
 		mv.addObject("pagingVO", pagingVO);
@@ -323,58 +317,53 @@ public class BoardNoticeAdminsController {
 		ModelAndView mv = new ModelAndView("/Admins/Promoter/BoardMgr/PmtNoticeList");
 		
 		BoardNoticeAdminsService.deletePmtNtmDelete(commandMap.getMap());
-
-		/*
-		mv.addObject("depth_1", depth_1);
-		mv.addObject("depth_2", depth_2);
-		mv.addObject("depth_3", "NtmDelete");
-		*/
 		
 		return mv;
 	}	
 	
 	// Promoter 공지사항 등록
 	@RequestMapping(value = "/admins/promoter/boardmgr/PmtNoticeForm.mwav")
-	// http://egloos.zum.com/nadostar/v/210497
 	public ModelAndView insertPmtNtmForm(CommandMap commandMap,
-			HttpServletRequest request) throws Exception {
+			HttpServletRequest request, HttpServletResponse response) throws Exception {
 
 		ModelAndView mv = new ModelAndView("/Admins/Promoter/BoardMgr/PmtNoticeForm");
 
 		BoardNoticeAdminsService.insertPmtNtmForm(commandMap.getMap());
-
+		
+		
 		String mm = "site";
 		mv.addObject("mm", mm);
-		
-		
-		mv.addObject("mode", "m_ntmForm");
 
-		mv.addObject("depth_1", depth_1);
-		mv.addObject("depth_2", depth_2);
-		mv.addObject("depth_3", "NtmForm");
-		
-		// mv.addObject("insertBnsForm", insertBnsForm);
-		// mv.addObject("IDX", commandMap.get("IDX"));
 
+		// ip address 값  받아서 전달 (error : 전달 안됨. 추후 기능개발 필요. 우선 텍스트값을 insert함.)
+		//String bpIpAddress = request.getHeader("X-Forwarded-For");
+		//if (bpIpAddress == null) ip = request.getRemoteAddr();
+		//String bpIpAddress = "hihi";
+		//mv.addObject("bpIpAddress", bpIpAddress);
+		
+		response.sendRedirect("/admins/promoter/boardmgr/PmtNoticeList.mwav?pageNum=1"); // 공지사항 등록 후 리스트 화면으로 이동
+		
 		return mv;
 	}
 
-	// Promoter 공지사항 등록
+	// Promoter 공지사항 수정
 	@RequestMapping(value = "/admins/promoter/boardmgr/PmtNoticeUpdatePro.mwav")
 	public ModelAndView updateProPmtNtmForm(CommandMap commandMap,
-			HttpServletRequest request) throws Exception {
+			HttpServletRequest request, HttpServletResponse response) throws Exception {
 		ModelAndView mv = new ModelAndView("/Admins/Promoter/BoardMgr/PmtNoticeList");
 
 		BoardNoticeAdminsService.updateProPmtNtmForm(commandMap.getMap());
 		
+		
 		String mm = "site";
 		mv.addObject("mm", mm);
-		mv.addObject("mode", "m_ntmList");
+		
+		response.sendRedirect("/admins/promoter/boardmgr/PmtNoticeList.mwav?pageNum=1"); // 공지사항 수정 후 리스트 화면으로 이동
 		
 		return mv;
 	}	
 
-	// Promoter 공지사항 업데이트
+	// Promoter 공지사항 수정
 	@RequestMapping(value = "/admins/promoter/boardmgr/PmtNoticeUpdate.mwav")
 	public ModelAndView updatePmtNtmForm(CommandMap commandMap,
 			HttpServletRequest request) throws Exception {
@@ -384,11 +373,14 @@ public class BoardNoticeAdminsController {
 		Map<String, Object> updatePmtNtmForm = BoardNoticeAdminsService.updatePmtNtmForm(commandMap.getMap());
 
 		if (updatePmtNtmForm != null && !updatePmtNtmForm.isEmpty()) {
+			
 			String mm = "site";
 			mv.addObject("mm", mm);
-			mv.addObject("mode", "m_nsmUpdate");
+
 			mv.addObject("updatePmtNtmForm", updatePmtNtmForm);
 		}
+		
+		
 		return mv;
 	}
 	
@@ -402,15 +394,10 @@ public class BoardNoticeAdminsController {
 				.selectOnePmtNtmView(commandMap.getMap());
 
 		if (selectOnePmtNtmView != null && !selectOnePmtNtmView.isEmpty()) {
-
+			
 			String mm = "site";
 			mv.addObject("mm", mm);
-			mv.addObject("mode", "m_pmtntmView");
-
-			mv.addObject("depth_1", depth_1);
-			mv.addObject("depth_2", depth_2);
-			mv.addObject("depth_3", "PmtNtmView");
-
+			
 			mv.addObject("selectOnePmtNtmView", selectOnePmtNtmView);
 		}
 
@@ -428,9 +415,10 @@ public class BoardNoticeAdminsController {
 		String bpStatus = request.getParameter("bpStatus"); //웹에서 전달받은 값
 		String boardPromoter_id = request.getParameter("boardPromoter_id"); //웹에서 전달받은 값
 		
+		
 		String mm = "site";
 		mv.addObject("mm", mm);
-		mv.addObject("mode", "m_ntmList");
+		
 		
 		mv.addObject("boardPromoter_id", boardPromoter_id);
 		mv.addObject("bpStatus", bpStatus);

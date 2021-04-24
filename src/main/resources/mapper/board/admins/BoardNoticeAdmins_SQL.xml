@@ -38,7 +38,12 @@
         update BoardUser_tbl set buViewCount = iFnull(BuViewCount, 0) +1 where boardUser_id = #{boardUser_id} 
     ]]>
     </update>
-    
+ 
+ 	<update id="updatePmtNtmHitCnt" parameterType="hashmap">
+    <![CDATA[
+        update BoardPromoter_tbl set bpViewCount = iFnull(BpViewCount, 0) +1 where boardPromoter_id = #{boardPromoter_id} 
+    ]]>
+    </update>   
  
      <select id="updateNtmform" parameterType="hashmap" resultType="hashmap">
     <![CDATA[
@@ -63,14 +68,6 @@
         update BoardPromoter_tbl set bpGroup= #{bpGroup}, bpHighLight= #{bpHighLight}, bpTitle= #{bpTitle}, bpSubTitle= #{bpSubTitle}, bpRelatedLink= #{bpRelatedLink}, bpContent= #{bpContent},  bpUpdateDt= NOW(), bpTitleImageLink=#{bpTitleImageLink}, bpKeyword=#{bpKeyword} where boardPromoter_id = #{boardPromoter_id}
     ]]>
     </update>
-
-	<!-- 
-     <update id="updatePmtNoticeStatus" parameterType="string">
-    <![CDATA[
-        UPDATE BoardPromoter_tbl SET bpStatus=#{bpStatus} WHERE boardPromoter_id = #{boardPromoter_id};
-    ]]>
-    </update>
-    -->
  
       <update id="updatePmtNoticeStatus" parameterType="hashmap">
     <![CDATA[

@@ -85,7 +85,7 @@ public class BoardNoticeAdminsDAO extends AbstractDAO {
 
 	// 조회수 증가
 	public void updatePmtNtmHitCnt(Map<String, Object> map) throws Exception {
-		update("boardNoticeAdminsDAO.updateNtmHitCnt", map);
+		update("boardNoticeAdminsDAO.updatePmtNtmHitCnt", map);
 	}
 	
 	/*
