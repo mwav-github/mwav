@@ -1,6 +1,7 @@
 package net.bizLogin.promoter.controller;
 
 import net.bizLogin.promoter.service.PmtFacilitatorService;
+import net.bizLogin.promoter.vo.BizPromoter_VO;
 import net.bizLogin.promoter.vo.PmtFacilitatorSO;
 import net.bizLogin.promoter.vo.PmtFacilitatorVO;
 import net.common.common.CommandMap;
@@ -14,10 +15,7 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -25,6 +23,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.util.Map;
 
 
@@ -56,27 +55,98 @@ public class PmtFacilitatorController {
 	
 	Common_Utils cu = new Common_Utils();
 
-	//로그인
-	@RequestMapping(value = "/Promoter/Facilitator/pmtFacilitatorLogin.mwav",method = RequestMethod.POST)
-	public ModelAndView selectLoginPro(CommandMap commandMap, HttpServletRequest request, RedirectAttributes rtr) throws Exception {
-		ModelAndView mv = new ModelAndView("redirect:/Promoter/Index");
-		PmtFacilitatorVO pmtFacilitator = null;
-		Map<String, Object> pmt = commandMap.getMap();
-		if( ((String) pmt.get("pmtLoginPw")).length()<3 || ((String) pmt.get("pmtLoginId")).length()<3 ){
-			rtr.addFlashAttribute("msg", "비밀번호와 아이디를 확인해주세요");
-			return mv;
-		}
-		pmtFacilitator = (PmtFacilitatorVO)pmtFacilitatorService.selectPmtFacLogin(commandMap.getMap());
-		if(pmtFacilitator==null){
+	/**
+	 * <pre>
+	 *     	프로모터 로그인 핸들러
+	 * </pre>
+	 * @param CommandMap
+	 * @param param2
+	 * @return return 값에 대한 설명(필수)
+	 * @throws Exception 발생하는 예외에 대한 설명(필수)
+	 * @see
+	 * @since 21st/May/2021
+	 * @version v1.0.0
+	 */
+	@RequestMapping(value = "/bizLogin/promoter/facilitator/pmtFacilitatorLogin.mwav",method = RequestMethod.POST)
+	public ModelAndView selectBizPmtLogin(CommandMap commandMap, HttpServletRequest request, RedirectAttributes rtr) throws Exception {
+		ModelAndView mv = new ModelAndView();
+		boolean chkEmailYN = false;
+
+		// Promoter 로그인 성공시 값을 가져옴
+		BizPromoter_VO bizPromoterVo = pmtFacilitatorService.selectBizPmtLogin(commandMap.getMap());
+
+		// 로그인 성공여부에 따라 페이지및 statusCode, msg 변경
+		if(bizPromoterVo == null){
 			log.info("프로모터 로그인 실패");
+			mv.setViewName("redirect:/Promoter/Facilitator/PmtLogin.mwav");
 			rtr.addFlashAttribute("msg", "비밀번호와 아이디를 확인해주세요");
-		}
-		else {
-			log.info("프로모터 로그인 성공");
-			request.getSession().setAttribute("promoterId",pmtFacilitator.getPromoter_id() );
+		}else {
+
+			// 로그인한 사용자가 이메일을 인증했는지 검증
+			chkEmailYN = bizPromoterVo.getPmtCertifyDt() != null ? true : false;
+
+			// 이메일 인증된 사용자의 경우
+			if(chkEmailYN){
+				log.info("프로모터 로그인 성공");
+				mv.setViewName("redirect:/Promoter/Index");
+				request.getSession().setAttribute("bizPromoter", bizPromoterVo);
+			}else{
+				// 이메일 인증이 안되어있는 사용자라면 인증 페이지로 redirect
+				log.info("이메일 인증되지 않은 사용자 로그인");
+				mv.setViewName("redirect:/Promoter/Facilitator/PmtCertifyPage.mwav");
+				rtr.addFlashAttribute("msg", "이메일 인증이 필요합니다.");
+				rtr.addFlashAttribute("promoter_id", bizPromoterVo.getPromoter_id());
+				rtr.addFlashAttribute("pmtMail", bizPromoterVo.getPmtMail());
+
+			}
+
 		}
 		return mv;
 	}
+
+	/**
+	 * <pre>
+	 *     	프로모터 이메일 인증
+	 * </pre>
+	 * @param initEmail 회원가입시 사용된 이메일
+	 * @param changeEmail 변경할 이메일
+	 * @param promoter_id 프로모터 PK
+	 * @return ModelAndView
+	 * @throws Exception
+	 * @see
+	 * @since 21st/May/2021
+	 * @version v1.0.0
+	 */
+	@RequestMapping(value = "/bizLogin/promoter/facilitator/certifyEmail", method = RequestMethod.POST)
+	public ModelAndView certifyEmail(@RequestParam(required = true) String initEmail
+								   , @RequestParam(required = true) String changeEmail
+								   , @RequestParam(required = true) String promoter_id
+								   , HttpServletRequest request
+								   , RedirectAttributes rtr) throws IOException {
+		ModelAndView mv = new ModelAndView();
+
+		// 초기 이메일과 변경된 이메일이 다르면, 변경된 이메일 DB 값을 수정한다.
+		if(initEmail.equalsIgnoreCase(changeEmail)){
+			// UPDATE PROMOTER EMAIL
+			pmtFacilitatorService.updatePmtEmail(changeEmail, promoter_id);
+		}
+
+		// 입력된 이메일로 인증 메일을 발송한다.
+		String serverUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+		boolean isOk = pmtFacilitatorService.sendCertifyMail(serverUrl, changeEmail, promoter_id);
+
+		// 성공적으로 메일을 발송했다면 msg로 확인 하라고 알림
+		if(isOk){
+			mv.setViewName("redirect:/Promoter/Facilitator/PmtLogin.mwav");
+			rtr.addAttribute("msg", "인증 메일을 발송하였습니다.\\n인증완료 후 다시 로그인해주세요.");
+		}else{
+			mv.setViewName("redirect:/Promoter/Facilitator/PmtCertifyPage.mwav");
+			rtr.addAttribute("msg", "메일 발송 오류입니다.\\n다시 시도해주세요.");
+		}
+
+		return mv;
+	}
+
 	/**
 	 * 메서드에 대한 설명
 	 * <pre>
@@ -100,23 +170,19 @@ public class PmtFacilitatorController {
 		// 3. 비즈니스 로직 실행
 		final Map<String, Object> pmtFormResult = pmtFacilitatorService.insertPmtForm(commandMap);
 
-		// 4. Model에 Attribute 등록
+		// 4. INSERT 한 promoter_id 를 가져옴
+		final String pmtLoginId = (String) commandMap.getMap().get("pmtLoginId");
+		String promoter_id = pmtFacilitatorService.selectOnePmtId(pmtLoginId);
+
+		// 5. Model에 Attribute 등록
 		// TODO : 등록 후 mode, mm 쿼리스트링 수정필요
 		mv.addAllObjects(pmtFormResult);
 		mv.addObject("mm", "firms");
 		mv.addObject("mode", "m_stfForm");
 
-		// 5. 이메일 발송
-		final String uri = "http://localhost:8080/accounts/email/certify";
-		HttpClient client = HttpClientBuilder.create().build();
-		HttpUriRequest req = RequestBuilder.post()
-				.setUri(uri)
-				.addParameter("email", (String)commandMap.get("pmtMail"))
-				.addParameter("account","pmt")
-				.addParameter("id",(String)commandMap.get("pmtLoginId"))
-				.build();
-		HttpResponse response = client.execute(req);
-		int statusCode = response.getStatusLine().getStatusCode();
+		// 6. 이메일 발송
+		String serverUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+		boolean isOk = pmtFacilitatorService.sendCertifyMail(serverUrl, (String)commandMap.get("pmtMail"), promoter_id);
 
 		return mv;
 	}

@@ -1,5 +1,6 @@
 package net.bizLogin.promoter.dao;
 
+import net.bizLogin.promoter.vo.BizPromoter_VO;
 import net.common.common.CommandMap;
 import net.bizLogin.promoter.vo.PmtFacilitatorSO;
 import net.bizLogin.promoter.vo.PmtFacilitatorVO;
@@ -7,6 +8,7 @@ import net.common.dao.AbstractDAO;
 import net.promoter.vo.Promoter_VO;
 import org.springframework.stereotype.Repository;
 
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -37,8 +39,16 @@ public class PmtFacilitatorDAO extends AbstractDAO{
     public String selectChkPmtCertifyDtYN(String promoter_id){
         return (String) selectOne("promoter.selectChkPmtCertifyDtYN",promoter_id);
     }
-    public PmtFacilitatorVO selectPmtLogin(Map<String, Object> map){
-        return (PmtFacilitatorVO)selectOne("promoter.selectPmtLogin",map);
+    public BizPromoter_VO selectBizPmtLogin(Map<String, Object> map){
+        return (BizPromoter_VO)selectOne("promoter.selectBizPmtLogin",map);
+    }
+
+    public String selectOnePmtId(String pmtLoginId) {
+        return (String)selectOne("promoter.selectOnePmtId", pmtLoginId);
+    }
+
+    public int updatePmtEmail(Map<String, String> param) {
+        return (int) selectOne("promoter.updatePmtEmail", param);
     }
 }
 

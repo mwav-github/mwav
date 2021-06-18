@@ -206,3 +206,21 @@ function kakaoLogout() {
     });
 }
 </script>
+
+<!-- recapture -->
+<script src='https://www.google.com/recaptcha/api.js?onload=CaptchaCallback&render=explicit' async defer></script>
+
+<!-- 리캡챠를 여러개 사용할때 사용한다고 함 -->
+<script type="text/javascript">
+	var CaptchaCallback = function() {
+		$('.g-recaptcha').each(function(index, el) {
+			var widgetId = grecaptcha.render(el, {
+				'sitekey' : '6LcdRxoUAAAAAA4OI0FIN2bv2W0ersTRjqHJdLG-'
+			});
+			jQuery(this).attr('data-widget-id', widgetId);
+		});
+	};
+</script>
+
+<script src="/CommonLibrary/Javascript/Common.js"></script>
+<script src="/CommonLibrary/Javascript/validate.js"></script>

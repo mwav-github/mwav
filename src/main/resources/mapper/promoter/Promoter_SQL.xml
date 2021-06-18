@@ -218,15 +218,46 @@
 		FROM Promoter_tbl T1
 			JOIN PromoterValue_tbl T2
 				ON T1.promoter_id = T2.promoter_id
-		WHERE T1.pmtLoginId = #{promoter_id}
+		WHERE T1.promoter_id = #{promoter_id}
 		]]>
 	</select>
 
 	<update id="updatePmtCertifyDt" parameterType="string">
 		<![CDATA[
 		UPDATE PromoterValue_tbl SET pmtCertifyDt = NOW()
-		WHERE promoter_id = (SELECT promoter_id FROM Promoter_tbl WHERE pmtLoginId = #{promoter_id})
+		WHERE promoter_id = #{promoter_id}
 		]]>
 	</update>
+
+	<!-- BizLogin Promoter Login -->
+	<select id="selectBizPmtLogin" parameterType="hashmap" resultType="net.bizLogin.promoter.vo.BizPromoter_VO">
+		<![CDATA[
+		SELECT T1.promoter_id, T1.pmtLoginId, T1.pmtLoginPw, T1.pmtGender, T1.pmtFirstName, T1.pmtLastName, T1.pmtMiddleName, T1.pmtNickName
+			 , T1.pmtMail, T1.pmtPhone, T1.pmtCellularPhone, T1.pmtAddrFlag, T1.pmtZipcode, T1.pmtAddress, T1.pmtAddressDetail, T1.pmtJobType, T1.pmtMarried, T1.pmtMark, T1.pmtRcmderId
+			 , T2.pmtCertifyDt
+		FROM  Promoter_tbl T1
+			  JOIN PromoterValue_tbl T2
+			  	   ON T1.promoter_id = T2.promoter_id
+		WHERE pmtLoginId = #{pmtLoginId}
+		AND   pmtLoginPw = #{pmtLoginPw}
+		]]>
+	</select>
+
+	<!-- BizLogin Promoter_id -->
+	<select id="selectOnePmtId" parameterType="string" resultType="string">
+		<![CDATA[
+		SELECT promoter_id
+		FROM   Promoter_tbl
+		WHERE  pmtLoginId = #{pmtLoginId}
+		]]>
+	</select>
+
+	<update id="updatePmtEmail" parameterType="hashmap">
+		<![CDATA[
+		UPDATE Promoter_tbl SET pmtMail = #{changeEmail}
+		WHERE promoter_id = #{promoter_id}
+		]]>
+	</update>
+
 </mapper>
 
